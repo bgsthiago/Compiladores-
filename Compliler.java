@@ -420,10 +420,10 @@ public class Compiler {
                             break;
                     
                         case ’<’ :
-                            if ( input[tokenPos] == ’=’ ) {
+                            if ( input[tokenPos] == '=' ) {
                                 tokenPos++;
                                 token = Symbol.LE;
-                                } else if ( input[tokenPos] == ’>’ ) {
+                                } else if ( input[tokenPos] == '>' ) {
                                     tokenPos++;
                                     token = Symbol.NEQ;
                                 }else{
@@ -432,7 +432,7 @@ public class Compiler {
                             break;
 
                         case ’>’ :
-                            if ( input[tokenPos] == ’=’ ) {
+                            if ( input[tokenPos] == '=' ) {
                                 tokenPos++;
                                 token = Symbol.GE;
                             }
@@ -441,7 +441,7 @@ public class Compiler {
                             break;
                         
                         case ’=’ :
-                            if ( input[tokenPos] == ’=’ ) {
+                            if ( input[tokenPos] == '=' ) {
                                 tokenPos++;
                                 token = Symbol.EQ;
                             }else{
@@ -449,19 +449,19 @@ public class Compiler {
                             }
                             break;
                         
-                        case ’(’ :
+                        case '(' :
                             token = Symbol.LEFTPAR;
                         break;
                        
-                        case ’)’ :
+                        case ')' :
                             token = Symbol.RIGHTPAR;
                         break;
                         
-                        case ’,’ :
+                        case ',' :
                             token = Symbol.COMMA;
                         break;
                         
-                        case ’;’ :
+                        case ';' :
                             token = Symbol.SEMICOLON;
                         break;
                         
@@ -486,13 +486,13 @@ public class Compiler {
         StringBuffer line = new StringBuffer();
         // go to the beginning of the line
         int i = tokenPos;
-        while ( i >= 1 && input[i] != ’\n’ )
+        while ( i >= 1 && input[i] != '\n' )
             i--;
         if ( input[i] == ’\n’ )
             i++;
             // go to the end of the line putting it in variable line
         
-        while ( input[i] != ’\0’ && input[i] != ’\n’ && input[i] != ’\r’ ) {
+        while ( input[i] != '\0' && input[i] != '\n' && input[i] != '\r' ) {
             line.append( input[i] );
             i++;
         }
