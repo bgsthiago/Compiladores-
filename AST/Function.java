@@ -3,7 +3,7 @@ package AST;
 import java.util.ArrayList;
 
 public class Function {
-	public Function( String id, String type ) {
+	public Function( String id, Type type ) {
         this.id = id;
         this.type = type; 
     }
@@ -15,7 +15,7 @@ public class Function {
     }
     
     private String id;
-    private String type; //futuramente criar uma classe typer
+    private Type type; //futuramente criar uma classe typer
     private ArrayList<ParamDec> ParamList;
     private ArrayList<Stat> StatList;
     

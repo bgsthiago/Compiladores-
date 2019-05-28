@@ -63,14 +63,16 @@ public class Compiler {
     private Program program() {
     	
         // Program ::= Func {Func}
-    	ArrayList<Function> arrayFunction = null;
+    	ArrayList<Function> arrayFunction = new ArrayList<Function>();
+
         while ( lexer.token == Symbol.FUNCTION ) {
             lexer.nextToken();
-            func();
-            arrayFunction = 
+            arrayFunction.add(func())
         }
+
         if ( lexer.token != Symbol.EOF )
         	error.signal("EOF expected");
+
         Program program = new Program(arrayFunction); 
         return program; //ta errado
     }
@@ -80,7 +82,7 @@ public class Compiler {
     	
     	Boolean isIdent = true;
     	String id = "";
-    	String type = "";
+    	Type type = null;
     	
     	//
     	for (Symbol c : Symbol.values()) {
@@ -88,24 +90,45 @@ public class Compiler {
                 isIdent = false;
             }
         }
+
     	if(isIdent) {
-    		id = lexer.token.toString();
-    		nextToken();
-    		if(lexer.token == Symbol.LEFTPAR) {
+    		id = lexer.token.getStringValue();
+            Function func = new Function(id);
+    		lexer.nextToken();
+
+    		
+            if(lexer.token == Symbol.LEFTPAR) {
     			nextToken();
-    			paramList();
+    			func.setparamList();
+
     			if(lexer.token == Symbol.RIGHTPAR) {
     				nextToken();
-    			}else {
-    				error.signal("right par missing");
+    			} else {
+    				error.signal("right parenthesis missing");
     			}
-    		}
-    	}
+    		} else {
+                error.signal("left parenthesis missing")
+            }
+    	} else {
+            error.signal("Identifier expected")
+        }
+
     	if(lexer.token == Symbol.ARROW) {
-    		nextToken();
-    		
-    		    	
+    		lexer.nextToken();
+            type = type();
+            func.setReturnType(type); 	
     	}
+
+        // Check and consume '{'
+        lexer.nextToken();
+        if (lexer.token != OPENBRACE) {
+            error.signal("{ expected")
+        } else {
+            lexer.nextToken();
+        }
+
+        func.setCompositeStatement(compositeStatement());
+
     	return func;
     	
     }
