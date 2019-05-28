@@ -1,7 +1,6 @@
 package Lexer;
 
-import java.util.*; 
-import CompilerError;
+import java.util.*;
 
 public class Lexer {
     
@@ -44,12 +43,12 @@ public class Lexer {
     }
 
     
-    public nextToken(){
+    public void nextToken(){
 
         char ch;
 
         //checa por espaços em brancos, tabs, etc...
-        while( ch = input[tokenPos] == ' ' || ch == '\r' || ch == '\t' || ch == '\n'){
+        while((ch = input[tokenPos]) == ' ' || ch == '\r' || ch == '\t' || ch == '\n'){
             //conto numero de linhas
             if(ch == '\n'){
                 lineNumber++;
@@ -97,7 +96,7 @@ public class Lexer {
                         //nesse caso, o identificador termina com um numero, ilegal:
                         error.signal("Identificador seguido de numero");
                     }
-                }else if(Chacaracter.isDigit){
+                }else if(Character.isDigit(ch)){
 
                 StringBuffer number = new StringBuffer();
                     while(Character.isDigit(ch)){
@@ -203,7 +202,7 @@ public class Lexer {
                                 tokenPos++;
                                 token = Symbol.EQ;
                             }else{
-                                token = Symbol.ASSIGN;
+                                token = Symbol.ATRIB;
                             }
                             break;
                         
@@ -215,7 +214,7 @@ public class Lexer {
                             break;
                         
                         default :
-                            error("Invalid Character: '" + ch + "'");
+                            error.signal("Invalid Character: '" + ch + "'");
                             
                         
                         
@@ -278,23 +277,14 @@ public class Lexer {
 
     //token atual
     public Symbol token;
-    
-    private String stingValue;
-
+    private String stringValue;
     private int numberValue;
-
     private char charValue;
-
     private int tokenPos;
-
     private int lastTokenPos;
-
     private char []input;
-
     private int lineNumber;
-
     private CompilerError error;
-
     private static final int MaxValueInteger = 2147483647;
     private static final int MinValueInteger = 0;
 
