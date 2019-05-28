@@ -14,8 +14,7 @@ public class Main {
     
         if ( args.length != 2 ) {
     
-            System.out.println("Usage:\n
-            Main input output");
+            System.out.println("Usage:\nMain input output");
             System.out.println("input is the file to be compiled");
             System.out.println("output is the file where the generated code will be stored");
         } else {
