@@ -99,7 +99,7 @@ public class Compiler {
     		
             if(lexer.token == Symbol.LEFTPAR) {
     			nextToken();
-    			func.setparamList();
+    			func.setparamList(paramList());
 
     			if(lexer.token == Symbol.RIGHTPAR) {
     				nextToken();
@@ -121,25 +121,84 @@ public class Compiler {
 
         // Check and consume '{'
         lexer.nextToken();
-        if (lexer.token != OPENBRACE) {
+        if (lexer.token != Symbol.OPENBRACE) {
             error.signal("{ expected")
         } else {
             lexer.nextToken();
         }
 
-        func.setCompositeStatement(compositeStatement());
+        func.setStatList(statList());
 
     	return func;
     	
     }
 
-    private StatementList compositeStatement() {
+    private ParamList paramList() {
+        // ParamList ::= ParamDec {”, ”ParamDec}
+        
+        ParamList paramlist = null;
+
+        if (lexer.token == Symbol.IDENT) {
+            paramlist = new ParamList();
+            paramDec(paramList);
+
+            while (lexer.token == Symbol.COMMA) {
+                lexer.nextToken();
+                paramDec(paramList);
+            }
+        }
+
+        return paramList;   
+    }
+
+    private void paramDec(ParamList paramList) {
+        // ParamDex ::= Id ":" Type
+
+        if (lexer.token != Symbol.IDENT) {
+            error.signal("Identifier expected");
+        }
+
+        String name = (String) lexer.getStringValue();
+        lexer.nextToken();
+
+        if (lexer.token != Symbol.COLON) {
+            error.sinal(": expected");
+        } else {
+            lexer.nextToken();
+        }
+
+        Parameter param = new Parameter(name);
+        param.setType(type());
+        paramList.addElement(param);
+    }
+
+    private Type type() {
+        Type result;
+
+        switch(lexer.token) {
+            case INTEGER :
+                result = Type.IntegerType;
+                break;
+            case BOOLEAN :
+                result = Type.BooleanType;
+                break;
+            case CHAR :
+                result = Type.CharType;
+                break;
+            default:
+                error.show("Type expected");
+                result = Type.IntegerType;
+        }
+
+        lexer.nextToken();
+        return result;
+    }
+
+    private StatementList statList() {
         // CompositeStatement ::= "begin" StatementList "end"
         // StatementList ::= | Statement ";" StatementList
-        if ( token != Symbol.BEGIN ){
-            error("BEGIN expected");
-            nextToken();
-        }
+        // StatList ::= "{" {Stat} "}"
+
         StatementList sl = statementList();
     
         if ( token != Symbol.END ){
