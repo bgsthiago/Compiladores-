@@ -26,7 +26,7 @@ public class Lexer {
         keywordsTable = new Hashtable<String, Symbol>();
         
         keywordsTable.put( "var", Symbol.VAR );
-        keywordsTable.put( "int", Symbol.INTEGER );
+        keywordsTable.put( "Int", Symbol.INTEGER );
         keywordsTable.put( "Boolean", Symbol.BOOLEAN );
         keywordsTable.put( "String", Symbol.STRING );
         keywordsTable.put( "true", Symbol.TRUE );
@@ -105,7 +105,7 @@ public class Lexer {
                         tokenPos++;
                     }
 
-                    token = Symbol.INTEGER;
+                    token = Symbol.LITERALINT;
 
                     try{
                         numberValue = Integer.valueOf(number.toString()).intValue();    

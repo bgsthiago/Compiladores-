@@ -139,20 +139,21 @@ public class Compiler {
 
         if (lexer.token == Symbol.IDENT) {
             paramlist = new ParamList();
-            paramDec(paramList);
+            paramDec(paramlist);
 
             while (lexer.token == Symbol.COMMA) {
                 lexer.nextToken();
-                paramDec(paramList);
+                paramDec(paramlist);
             }
+        } else {
+            error.signal("identifier expected");
         }
-        else error.signal("identifier expected");
 
-        return paramList;   
+        return paramlist;   
     }
 
     private void paramDec(ParamList paramList) {
-        // ParamDex ::= Id ":" Type
+        // ParamDec ::= Id ":" Type
 
         if (lexer.token != Symbol.IDENT) {
             error.signal("Identifier expected");
@@ -182,7 +183,7 @@ public class Compiler {
             case Symbol.BOOLEAN :
                 result = Type.BooleanType;
                 break;
-            case Symbol.CHAR :
+            case Symbol.STRING :
                 result = Type.CharType;
                 break;
             default:
@@ -223,7 +224,19 @@ public class Compiler {
         // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
 
         switch (lexer.token) {
-            case Symbol.IDENT :    // Ta errado, precisa revisar a regra da gramatica
+            case Symbol.IDENT :
+                return assignExprStat();
+                break;
+            case Symbol.TRUE:
+                return assignExprStat();
+                break;
+            case Symbol.FALSE:
+                return assignExprStat();
+                break;
+            case Symbol.LITERALINT:
+                return assignExprStat();
+                break;
+            case Symbol.LITERALSTRING:
                 return assignExprStat();
                 break;
             case Symbol.RETURN :
@@ -248,27 +261,26 @@ public class Compiler {
     private AssignmentStatement assignExprStat() {
         // AssignExprStat ::= Expr [ "=" Expr] ";"
 
-        // the current token is Symbol.IDENT and stringValue
-        // contains the identifier
-        String name = lexer.stringValue;
+        Expr left = expr();
+        Expr right = null;
+
+        if (lexer.token == Symbol.ATRIB) {
+            lexer.nextToken()
+            right = expr();
+        }
+
+        if (lexer.token != Symbol.SEMICOLON) {
+            error.signal("; expected");
+        }
+
     
         // #Sera implementado na segunda fase (Analisador Semantico)
         // is the variable in the symbol table ? Variables are inserted in the
         // symbol table when they are declared. It the variable is not there, it has
         // not been declared.
-
-        lexer.nextToken();
-        if (token != Symbol.ATRIB){
-            error.signal("= expected");
-        } else {
-            lexer.nextToken();
-        }
-
-        Expr right = expr();
-
         // # Implementar analise semantica
 
-        return new AssignExprStat(name, right);
+        return new AssignExprStat(left, right);
     }
 
 
@@ -289,43 +301,29 @@ public class Compiler {
         return new IfStatement( e, thenPart, elsePart );
     }
 
-    private ArrayList<Variable> varDecStat() {
-        //VarDecList ::= Variable | Variable "," VarDecList ";"
-        ArrayList<Variable> v = new ArrayList<Variable>();
-        Variable variable = varDec();
-       
-        v.add(variable);
-       
-        while ( token == Symbol.COMMA ) {
-         nextToken();
-          v.add( varDec() );
-        }
-        return v;
-    }
+    private VarDecStat varDecStat() {
+        // VarDecStat ::= "var" Id ":" Type ";"
+        Variable v = new Variable();
+        String id;
+        Type type;
 
-    private Variable varDec() {
+        lexer.nextToken();
+        if (lexer.token != Symbol.IDENT) {
+            error.signal("Identifier expected");
+        } else {
+            id = lexer.stringValue();
+            lexer.nextToken();
+        }
         
-        Variable v;
-        
-        if ( token != Symbol.IDENT ){
-            error("Identifier expected");
-            // name of the identifier
+        if (lexer.token != Symbol.COLON) {
+            error.signal(": expected")
+        } else {
+            lexer.nextToken();
         }
 
-        String name = stringValue;
-        nextToken();
-            // semantic analysis
-            // if the name is in the symbol table, the variable has been declared twice.
-        
-        if ( symbolTable.get(name) != null ){
-            error("Variable " + name + " has already been declared");
-            // inserts the variable in the symbol table. The name is the key and an
-            // object of class Variable is the value. Hash tables store a pair (key, value)
-            // retrieved by the key.
-        }
+        type = type();
 
-        symbolTable.put( name, v = new Variable(name) );
-        return v;
+        return new VarDecStat(v);
     }
 
     private Expr expr() {
