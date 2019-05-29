@@ -37,64 +37,100 @@ repeated zero or more times.
 import AST.*;
 import java.util.*;
 import Lexer.*;
+import java.lang.Character;
+import java.io.*;
 
 public class Compiler {
-    // contains the keywords
-    static private Hashtable<String, Symbol> keywordsTable;
-    // this code will be executed only once for each program execution
-    static {
-        keywordsTable = new Hashtable<String, Symbol>();
-        keywordsTable.put( "var", Symbol.VAR );
-        keywordsTable.put( "begin", Symbol.BEGIN );
-        keywordsTable.put( "end", Symbol.END );
-        keywordsTable.put( "if", Symbol.IF );
-        keywordsTable.put( "then", Symbol.THEN );
-        keywordsTable.put( "else", Symbol.ELSE );
-        keywordsTable.put( "endif", Symbol.ENDIF );
-        keywordsTable.put( "read", Symbol.READ );
-        keywordsTable.put( "write", Symbol.WRITE );
-    }
-    
+	
+	private Hashtable<String, Variable> symbolTable; 
+	private Lexer lexer; 
+	private CompilerError error;
+
     // compile must receive an input with an character less than
     // p_input.lenght
     
-    public Program compile( char []p_input ) {
+    public Program compile( char []input, PrintWriter outError ) {
         
-        input = p_input;
+        symbolTable = new Hashtable<String, Variable>(); 
         
-        // add an end-of-file label to make it easy to do the lexer
-        input[input.length - 1] = ’\0’;
-        
-        // number of the current line
-        lineNumber = 1;
-        tokenPos = 0;
-        
-        // symbol table. Will contain the declared variable
-        symbolTable = new Hashtable<String, Variable>();
-        nextToken();
+        error = new CompilerError( outError ); 
+        lexer = new Lexer(input, error); 
+        error.setLexer(lexer);
+        lexer.nextToken(); 
         return program();
     }
 
     private Program program() {
+    	
+        // Program ::= Func {Func}
+    	ArrayList<Function> arrayFunction = new ArrayList<Function>();
+
+        while ( lexer.token == Symbol.FUNCTION ) {
+            lexer.nextToken();
+            arrayFunction.add(func())
+        }
+
+        if ( lexer.token != Symbol.EOF )
+        	error.signal("EOF expected");
+
+        Program program = new Program(arrayFunction); 
+        return program; //ta errado
+    }
     
-        // Program ::= [ "var" VarDecList ] CompositeStatement
-        ArrayList<Variable> arrayVariable = null;
-    
-        if ( token == Symbol.VAR ) {
-            nextToken();
-            arrayVariable = varDecList();
-            if ( token != Symbol.SEMICOLON ){
-                error("; expected");
+    private Function func() {
+    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList 
+    	
+    	Boolean isIdent = true;
+    	String id = "";
+    	Type type = null;
+    	
+    	//
+    	for (Symbol c : Symbol.values()) {
+            if (c.name().equals(lexer.token)) {
+                isIdent = false;
             }
-            nextToken();
         }
-    
-        Program program = new Program( arrayVariable, compositeStatement() );
-    
-        if ( token != Symbol.EOF ){
-            error("EOF expected");
+
+    	if(isIdent) {
+    		id = lexer.token.getStringValue();
+            Function func = new Function(id);
+    		lexer.nextToken();
+
+    		
+            if(lexer.token == Symbol.LEFTPAR) {
+    			nextToken();
+    			func.setparamList();
+
+    			if(lexer.token == Symbol.RIGHTPAR) {
+    				nextToken();
+    			} else {
+    				error.signal("right parenthesis missing");
+    			}
+    		} else {
+                error.signal("left parenthesis missing")
+            }
+    	} else {
+            error.signal("Identifier expected")
         }
-        return program;
+
+    	if(lexer.token == Symbol.ARROW) {
+    		lexer.nextToken();
+            type = type();
+            func.setReturnType(type); 	
+    	}
+
+        // Check and consume '{'
+        lexer.nextToken();
+        if (lexer.token != OPENBRACE) {
+            error.signal("{ expected")
+        } else {
+            lexer.nextToken();
+        }
+
+        func.setCompositeStatement(compositeStatement());
+
+    	return func;
+    	
     }
 
     private StatementList compositeStatement() {
@@ -502,25 +538,6 @@ public class Compiler {
         System.out.println( strMessage );
         throw new RuntimeException(strMessage);
     }
-
-    // current token
-    private Symbol token;
-
-    private String stringValue;
-
-    private int numberValue;
-
-    private int tokenPos;
-
-    // program given as input - source code
-    private char []input;
-
-    private Hashtable<String, Variable> symbolTable;
-
-    // number of current line. Starts with 1
-    private int lineNumber;
-
-    private static final int MaxValueInteger = 32768;
 }
 
 
