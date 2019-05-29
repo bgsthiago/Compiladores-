@@ -258,7 +258,7 @@ public class Compiler {
         return null;
     }
 
-    private AssignmentStatement assignExprStat() {
+    private AssignExprStatement assignExprStat() {
         // AssignExprStat ::= Expr [ "=" Expr] ";"
 
         Expr left = expr();
@@ -326,45 +326,148 @@ public class Compiler {
         return new VarDecStat(v);
     }
 
+    private WhileStatement whileStat() {
+        // WhileStat ::= "while" Expr StatList
+        lexer.nextToken();
+
+        Expr e = expr();
+        Statement stmt = statement();
+
+        return new WhileStatement(expr, stmt);
+    }
+
+    private ReturnStatement returnStat() {
+        lexer.nextToken();
+        Expr e = expr();
+
+        // # Implementar analise semantica (verificar se esta dentro de funcao)
+        return new ReturnStatement(e);
+    }
+
     private Expr expr() {
-        if ( token == Symbol.LEFTPAR ) {
-            nextToken();
-            Symbol op = token;
-            if ( op == Symbol.EQ || op == Symbol.NEQ || op == Symbol.LE || op == Symbol.LT ||
-            op == Symbol.GE || op == Symbol.GT || op == Symbol.PLUS ||
-            op == Symbol.MINUS || op == Symbol.MULT || op == Symbol.DIV ){
-                nextToken();
-            }else{
-                error("operator expected");
-                Expr e1 = expr();
-                Expr e2 = expr();
-                CompositeExpr ce = new CompositeExpr(e1, op, e2);
-                if ( token == Symbol.RIGHTPAR )
-                    nextToken();
-                else
-                    error(") expected");
-                return ce;
+        // Expr ::= ExprAnd {”or”ExprAnd}
+        Expr left, right;
+        left = exprAnd();
 
-            }
-        }else{
+        if (lexer.token == Symbol.OR) {
+            lexer.nextToken();
+            right = exprAnd();
+            left = new CompositeExpr(left, Symbol.OR, right);
+        }
 
-                // note we test the token to decide which production to use
-            if ( token == Symbol.NUMBER )
-                return number();
-            else {
-                if ( token != Symbol.IDENT )
-                    error("Identifier expected");
-            String name = stringValue;
-            nextToken();
-            Variable v = (Variable ) symbolTable.get( name );
-                // semantic analysis
-                // was the variable declared ?
-            if ( v == null )
-                error("Variable " + name + " was not declared");
-            return new VariableExpr(v);
-            }
+        return left;
+    }
+
+    private Expr andExpr() {
+        // ExprAnd ::= ExprRel {”and”ExprRel}
+        Expr left, right;
+        left = exprRel();
+
+        if (lexer.token == Symbol.AND) {
+            lexer.nextToken();
+            right = exprRel();
+            left = new CompositeExpr(left, Symbol.AND, right);
+        }
+
+        return left;   
+    }
+
+    private Expr relExpr() {
+        // ExprRel ::= ExprAdd [ RelOp ExprAdd ]
+        Expr left, right;
+        left = exprAdd();
+        Symbol op = lexer.token;
+
+        if (op == Symbol.LT || op == Symbol.LT || op == Symbol.GT || op == Symbol.GE || op == Symbol.NEQ || op == Symbol.EQ) {
+            lexer.nextToken();
+            right = exprAdd();
+            left = new CompositeExpr(left, op, right);
+        }
+        
+        return left;
+    }
+
+    private Expr exprAdd() {
+        // ExprAdd ::= ExprMult {(” + ” | ” − ”)ExprMult}
+        Expr left, right;
+        left = exprMult();
+        Symbol op = lexer.token;
+
+        while (op == Symbol.PLUS || op == Symbol.MINUS) {
+            lexer.nextToken();
+            right = exprMult();
+            left = new CompositeExpr(left, op, right);
+        }
+
+        return left;
+    }
+
+    private Expr exprMult() {
+        // ExprMult ::= ExprUnary {(” ∗ ” | ”/”)ExprUnary}
+        Expr left, right;
+        left = exprUnary();
+        Symbol op = lexer.token;
+
+        while (op == Symbol.MULT || op == Symbol.DIV) {
+            lexer.nextToken();
+            right = exprUnary();
+            left = new CompositeExpr(left, op, right);
+        }
+        
+        return left;
+    }
+
+    private Expr exprUnary() {
+        // ExprUnary ::= [ ( "+" | "-" ) ] ExprPrimary
+        Symbol op = null;
+
+        if (lexer.token == Symbol.PLUS || lexer.token == Symbol.MINUS) {
+            op = lexer.token;
+            lexer.nextToken();
+        }
+
+        Expr e = exprPrimary();
+
+        return new ExprUnary(op, e);
+    }
+
+    private Expr exprPrimary() {
+        // ExprPrimary ::= Id | FuncCall | ExprLiteral
+        Expr e;
+
+        switch (lexer.token) {
+            case Symbol.LITERALINT:
+                return exprLiteralInt();
+                break;
+            case Symbol.LITERALSTRING:
+                return exprLiteralString();
+                break;
+            case Symbol.TRUE:
+                return exprLiteralBoolean();
+                break;
+            case Symbol.FALSE:
+                return exprLiteralBoolean();
+                break;
+            case Symbol.IDENT: // Sera uma variavel simples ou uma chamada de funcao
+                lexer.nextToken();
+                
+                if (lexer.token == Symbol.LEFTPAR) {
+                    return funcCall();
+                } else {
+                    return idExpr();
+                }
+
+                break;
+            default:
+                error.signal("Statement expected");
 
         }
+
+        private ExprLiteralInt exprLiteralInt() {
+            
+        }
+
+
     }
 
     private NumberExpr number() {
@@ -378,179 +481,7 @@ public class Compiler {
         return new NumberExpr(value);
     }
 
-    private void nextToken() {
-        
-        char ch;
-        while ((ch = input[tokenPos]) == ’ ’ || ch == ’\r’ ||ch == ’\t’ || ch == ’\n’) {
-        // count the number of lines
-            if ( ch == ’\n’)
-                lineNumber++;
-            tokenPos++;
-        }
-
-        if ( ch == ’\0’){
-            token = Symbol.EOF;
-        }else{
-            // skip comments
-            if ( input[tokenPos] == ’/’ && input[tokenPos + 1] == ’/’ ) {
-            // comment found
-                while ( input[tokenPos] != ’\0’&& input[tokenPos] != ’\n’ )
-                    tokenPos++;
-            nextToken();
-            }else {
-
-                if ( Character.isLetter( ch ) ) {
-                    
-                    // get an identifier or keyword
-                    // StringBuffer represents a string that can grow
-                    StringBuffer ident = new StringBuffer();
-                    
-                    // is input[tokenPos] a letter ?
-                    // isLetter is a static method of class Character
-                    while ( Character.isLetter( input[tokenPos] ) ) {
-                    
-                        // add a character to ident
-                        ident.append(input[tokenPos]);
-                        tokenPos++;
-                    }
-                    // convert a StringBuffer object into a String object
-                    stringValue = ident.toString();
-                    // if identStr is in the list of keywords, it is a keyword !
-                    Symbol value = keywordsTable.get(stringValue);
-                    if(value == null){
-                        token = Symbol.IDENT;
-                    }else{
-                        token = value;
-                    }
-                    if ( Character.isDigit(input[tokenPos]) )
-                        error("Word followed by a number");
-                }else if(Character.isDigit(ch)){
-                    
-                    // get a number
-                    StringBuffer number = new StringBuffer();
-                    
-                    while ( Character.isDigit( input[tokenPos] ) ) {
-                        number.append(input[tokenPos]);
-                        tokenPos++;
-                    }
-                    
-                    token = Symbol.NUMBER;
-                    try {
-                        /*
-                        number.toString() converts a StringBuffer
-                        into a String object.
-                        valueOf converts a String object into an
-                        Integer object. intValue gets the int
-                        inside the Integer object.
-                        */
-                        numberValue = Integer.valueOf(number.toString()).intValue();
-                    } catch ( NumberFormatException e ) {
-                        error("Number out of limits");
-                    }
-                    if ( numberValue >= MaxValueInteger )
-                        error("Number out of limits");
-                    if ( Character.isLetter(input[tokenPos]) )
-                        error("Number followed by a letter");
-                }else{
-
-                    tokenPos++;
-                    switch ( ch ) {
-                        case ’+’ :
-                            token = Symbol.PLUS;
-                            break;
-                        case ’-’ :
-                            token = Symbol.MINUS;
-                            break;
-                        case ’*’ :
-                            token = Symbol.MULT;
-                            break;
-                        case ’/’ :
-                            token = Symbol.DIV;
-                            break;
-                    
-                        case ’<’ :
-                            if ( input[tokenPos] == '=' ) {
-                                tokenPos++;
-                                token = Symbol.LE;
-                                } else if ( input[tokenPos] == '>' ) {
-                                    tokenPos++;
-                                    token = Symbol.NEQ;
-                                }else{
-                                    token = Symbol.LT;
-                                }
-                            break;
-
-                        case ’>’ :
-                            if ( input[tokenPos] == '=' ) {
-                                tokenPos++;
-                                token = Symbol.GE;
-                            }
-                            else
-                                token = Symbol.GT;
-                            break;
-                        
-                        case ’=’ :
-                            if ( input[tokenPos] == '=' ) {
-                                tokenPos++;
-                                token = Symbol.EQ;
-                            }else{
-                                token = Symbol.ASSIGN;
-                            }
-                            break;
-                        
-                        case '(' :
-                            token = Symbol.LEFTPAR;
-                        break;
-                       
-                        case ')' :
-                            token = Symbol.RIGHTPAR;
-                        break;
-                        
-                        case ',' :
-                            token = Symbol.COMMA;
-                        break;
-                        
-                        case ';' :
-                            token = Symbol.SEMICOLON;
-                        break;
-                        
-                        default :
-                        error("Invalid Character: ’" + ch + "’");
-
-
-                    }                  
-                
-                }
-            }
-        }
-    }
-
-    private void error( String strMessage ) {
-        if ( tokenPos == 0 )
-            tokenPos = 1;
-        else
-            if ( tokenPos >= input.length )
-                tokenPos = input.length;
-        
-        StringBuffer line = new StringBuffer();
-        // go to the beginning of the line
-        int i = tokenPos;
-        while ( i >= 1 && input[i] != '\n' )
-            i--;
-        if ( input[i] == ’\n’ )
-            i++;
-            // go to the end of the line putting it in variable line
-        
-        while ( input[i] != '\0' && input[i] != '\n' && input[i] != '\r' ) {
-            line.append( input[i] );
-            i++;
-        }
-
-        System.out.println("Error at line " + lineNumber + ": ");
-        System.out.println(line);
-        System.out.println( strMessage );
-        throw new RuntimeException(strMessage);
-    }
+    
 }
 
 
