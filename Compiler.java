@@ -126,7 +126,7 @@ public class Compiler {
         } else {
             lexer.nextToken();
         }*/
-        func.setStatList(statList());
+        func.setStatList(statList()); 
 
     	return func;
     	
@@ -146,6 +146,7 @@ public class Compiler {
                 paramDec(paramList);
             }
         }
+        else error.signal("identifier expected");
 
         return paramList;   
     }
@@ -175,13 +176,13 @@ public class Compiler {
         Type result;
 
         switch(lexer.token) {
-            case INTEGER :
+            case Symbol.INTEGER :
                 result = Type.IntegerType;
                 break;
-            case BOOLEAN :
+            case Symbol.BOOLEAN :
                 result = Type.BooleanType;
                 break;
-            case CHAR :
+            case Symbol.CHAR :
                 result = Type.CharType;
                 break;
             default:
@@ -197,7 +198,6 @@ public class Compiler {
         // StatList ::= "{" {Stat} "}"
         
         Symbol tkn;
-        Statement stmt;
         ArrayList<Statement> v = new ArrayList<Statement>();
 
         if (lexer.token != Symbol.OPENBRACE) {
@@ -206,19 +206,8 @@ public class Compiler {
             lexer.nextToken();
         }
 
-        while ((tkn = lexer.token) != Symbol.CLOSEBRACE && tkn != Symbol.ELSE) {
-            stmt = stat();
-
-            if (stmt != null) {
-                v.add(stmt);
-                
-                if (lexer.token != Symbol.SEMICOLON) {
-                    error.signal("; expected");
-                }
-                else {
-                    lexer.nextToken();
-                }
-            }
+        while ((tkn = lexer.token) != Symbol.CLOSEBRACE && tkn != Symbol.EOF) {
+            v.add(stat());
         }
 
         if (tkn != Symbol.CLOSEBRACE) {
@@ -233,20 +222,20 @@ public class Compiler {
     private Statement stat() {
         // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
 
-        switch (token) {
-            case IDENT :    // Ta errado, precisa revisar a regra da gramatica
+        switch (lexer.token) {
+            case Symbol.IDENT :    // Ta errado, precisa revisar a regra da gramatica
                 return assignExprStat();
                 break;
-            case RETURN :
+            case Symbol.RETURN :
                 return returnStat();
                 break;
-            case VAR :
+            case Symbol.VAR :
                 return varDecStat();
                 break;
-            case IF :
+            case Symbol.IF :
                 return IfStat();
                 break;
-            case WHILE:
+            case Symbol.WHILE:
                 return whileStat();
                 break;
             default :
@@ -256,7 +245,7 @@ public class Compiler {
         return null;
     }
 
-    private AssignmentStatement assignmentExprStat() {
+    private AssignmentStatement assignExprStat() {
         // AssignExprStat ::= Expr [ "=" Expr] ";"
 
         // the current token is Symbol.IDENT and stringValue
