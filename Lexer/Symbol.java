@@ -3,7 +3,7 @@ package Lexer;
 public enum Symbol {
     EOF("eof"),
     IDENT("Id"),
-    INTEGER("int"),
+    INTEGER("Int"),
     BOOLEAN("Boolean"),
     TRUE("true"),
     FALSE("false"),
@@ -37,11 +37,13 @@ public enum Symbol {
     LEFTBRACK("["),
     RIGHTBRACK("]"),
     WRITELN("writeln"),
-    WRITE("write");
+    WRITE("write"),
+    RETURN("return");
 
     Symbol(String name) {
         this.name = name;
     }
-        public String toString() { return name; }
-        public String name;
+    
+    public String toString() { return name; }
+    public String name;
 }

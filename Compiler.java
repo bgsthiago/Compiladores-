@@ -98,11 +98,11 @@ public class Compiler {
 
     		
             if(lexer.token == Symbol.LEFTPAR) {
-    			nextToken();
+    			lexer.nextToken();
     			func.setparamList(paramList());
 
     			if(lexer.token == Symbol.RIGHTPAR) {
-    				nextToken();
+    				lexer.nextToken();
     			} else {
     				error.signal("right parenthesis missing");
     			}
@@ -120,13 +120,12 @@ public class Compiler {
     	}
 
         // Check and consume '{'
-        lexer.nextToken();
-        if (lexer.token != Symbol.OPENBRACE) {
+        //lexer.nextToken();
+        /*if (lexer.token != Symbol.OPENBRACE) {
             error.signal("{ expected")
         } else {
             lexer.nextToken();
-        }
-
+        }*/
         func.setStatList(statList());
 
     	return func;
@@ -162,7 +161,7 @@ public class Compiler {
         lexer.nextToken();
 
         if (lexer.token != Symbol.COLON) {
-            error.sinal(": expected");
+            error.signal(": expected");
         } else {
             lexer.nextToken();
         }
@@ -186,7 +185,7 @@ public class Compiler {
                 result = Type.CharType;
                 break;
             default:
-                error.show("Type expected");
+                error.signal("Type expected");
                 result = Type.IntegerType;
         }
 
@@ -195,145 +194,113 @@ public class Compiler {
     }
 
     private StatementList statList() {
-        // CompositeStatement ::= "begin" StatementList "end"
-        // StatementList ::= | Statement ";" StatementList
         // StatList ::= "{" {Stat} "}"
-
-        StatementList sl = statementList();
-    
-        if ( token != Symbol.END ){
-            error("\"end\" expected");
-        }
-        nextToken();
-        return sl;
-    }
-
-    private StatementList statementList() {
-        ArrayList<Statement> v = new ArrayList<Statement>();
-        // statements always begin with an identifier, if, read or write
-        while ( token == Symbol.IDENT ||token == Symbol.IF || token == Symbol.READ ||token == Symbol.WRITE ) {
-            v.add( statement() );
-            if ( token != Symbol.SEMICOLON )
-            error("; expected");
-        }
-        nextToken();
         
-    return new StatementList(v);
+        Symbol tkn;
+        Statement stmt;
+        ArrayList<Statement> v = new ArrayList<Statement>();
+
+        if (lexer.token != Symbol.OPENBRACE) {
+            error.signal("{ expected")
+        } else {
+            lexer.nextToken();
+        }
+
+        while ((tkn = lexer.token) != Symbol.CLOSEBRACE && tkn != Symbol.ELSE) {
+            stmt = stat();
+
+            if (stmt != null) {
+                v.add(stmt);
+                
+                if (lexer.token != Symbol.SEMICOLON) {
+                    error.signal("; expected");
+                }
+                else {
+                    lexer.nextToken();
+                }
+            }
+        }
+
+        if (tkn != Symbol.CLOSEBRACE) {
+            error.signal("} expected");
+        } else {
+            lexer.nextToken();
+        }
+
+        return new StatementList(v);
     }
 
-    private Statement statement() {
-        /* Statement ::= AssignmentStatement | IfStatement | ReadStatement |
-        WriteStatement
-        */
+    private Statement stat() {
+        // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
+
         switch (token) {
-            case IDENT :
-                return assignmentStatement();
+            case IDENT :    // Ta errado, precisa revisar a regra da gramatica
+                return assignExprStat();
+                break;
+            case RETURN :
+                return returnStat();
+                break;
+            case VAR :
+                return varDecStat();
+                break;
             case IF :
-                return ifStatement();
-            case READ :
-                return readStatement();
-            case WRITE :
-                 return writeStatement();
+                return IfStat();
+                break;
+            case WHILE:
+                return whileStat();
+                break;
             default :
                 // will never be executed
-                error("Statement expected");
+                error.signal("Statement expected");
         }
         return null;
     }
 
-    private AssignmentStatement assignmentStatement() {
-    
+    private AssignmentStatement assignmentExprStat() {
+        // AssignExprStat ::= Expr [ "=" Expr] ";"
+
         // the current token is Symbol.IDENT and stringValue
         // contains the identifier
-        String name = stringValue;
+        String name = lexer.stringValue;
     
+        // #Sera implementado na segunda fase (Analisador Semantico)
         // is the variable in the symbol table ? Variables are inserted in the
         // symbol table when they are declared. It the variable is not there, it has
         // not been declared.
-        Variable v = (Variable ) symbolTable.get(name);
-    
-        // was it in the symbol table ?
-        if ( v == null ){
-            error("Variable " + name + " was not declared");
-            // eat token Symbol.IDENT
+
+        lexer.nextToken();
+        if (token != Symbol.ATRIB){
+            error.signal("= expected");
+        } else {
+            lexer.nextToken();
         }
-        nextToken();
-        if ( token != Symbol.ASSIGN ){
-            error("= expected");
-        }
-        nextToken();
-        return new AssignmentStatement( v, expr() );
+
+        Expr right = expr();
+
+        // # Implementar analise semantica
+
+        return new AssignExprStat(name, right);
     }
 
 
-    private IfStatement ifStatement() {
-        nextToken();
+    private IfStatement IfStat() {
+        // IfStat ::= "if" Expr StatList
+
+        lexer.nextToken();
         Expr e = expr();
-        if ( token != Symbol.THEN ){
-           error("then expected");
-        }
-        nextToken();
-
-        StatementList thenPart = statementList();
-        StatementList elsePart = null;
         
-        if ( token == Symbol.ELSE ) {
-            nextToken();
-            elsePart = statementList();
+        StatementList thenPart = statList();
+        
+        StatementList elsePart = null;
+        if (lexer.token == Symbol.ELSE) {
+            lexer.nextToken();
+            elsePart = statList();
         }
 
-        if ( token != Symbol.ENDIF ){
-            error("\"endif\" expected");
-        }
-        nextToken();
         return new IfStatement( e, thenPart, elsePart );
     }
 
-    private ReadStatement readStatement() {
-        nextToken();
-        if ( token != Symbol.LEFTPAR )
-            error("( expected");
-        nextToken();
-        
-        if ( token != Symbol.IDENT ){
-            error("Identifier expected");
-            // check if the variable was declared
-        }
-
-        String name = stringValue;
-        Variable v = (Variable ) symbolTable.get(name);
-        
-        if ( v == null ){
-            error("Variable " + name + " was not declared");
-        }
-        nextToken();
-        if ( token != Symbol.RIGHTPAR ){
-            error(") expected");
-        }
-
-        nextToken();
-        return new ReadStatement( v );
-    }
-
-    private WriteStatement writeStatement() {
-    
-        nextToken();
-    
-        if ( token != Symbol.LEFTPAR ){
-            error("( expected");
-        }
-        nextToken();
-        
-        Expr e = expr();
-        
-        if ( token != Symbol.RIGHTPAR ){
-            error(") expected");
-        }
-        nextToken();
-        return new WriteStatement( e );
-    }
-
-    private ArrayList<Variable> varDecList() {
+    private ArrayList<Variable> varDecStat() {
         //VarDecList ::= Variable | Variable "," VarDecList ";"
         ArrayList<Variable> v = new ArrayList<Variable>();
         Variable variable = varDec();
