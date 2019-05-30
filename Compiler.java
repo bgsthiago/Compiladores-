@@ -49,77 +49,76 @@ public class Compiler {
     // compile must receive an input with an character less than
     // p_input.lenght
 
-    public Program compile( char []input, PrintWriter outError ) {
+	public Program compile( char []input, PrintWriter outError ) {
 
-        symbolTable = new Hashtable<String, Variable>();
+		symbolTable = new Hashtable<String, Variable>();
 
-        error = new CompilerError( outError );
-        lexer = new Lexer(input, error);
-        error.setLexer(lexer);
-        lexer.nextToken();
-        return program();
+    error = new CompilerError( outError );
+    lexer = new Lexer(input, error);
+    error.setLexer(lexer);
+    lexer.nextToken();
+    return program();
+  }
+
+  private Program program() {
+
+	  // Program ::= Func {Func}
+    ArrayList<Function> arrayFunction = new ArrayList<Function>();
+
+    while ( lexer.token == Symbol.FUNCTION ) {
+    	lexer.nextToken();
+      arrayFunction.add(func())
     }
 
-    private Program program() {
+    Program program = new Program(arrayFunction);
 
-        // Program ::= Func {Func}
-    	ArrayList<Function> arrayFunction = new ArrayList<Function>();
+		if ( lexer.token != Symbol.EOF )
+			error.signal("EOF expected");
 
-      while ( lexer.token == Symbol.FUNCTION ) {
-          lexer.nextToken();
-          arrayFunction.add(func())
+		return program;
+
+	}
+
+	private Function func() {
+  //Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList
+
+  	Boolean isIdent = true;
+  	String id = "";
+  	Type type = null;
+
+  	for (Symbol c : Symbol.values()) {
+    	if (c.name().equals(lexer.token)) {
+      isIdent = false;
       }
+    }
 
-    	Program program = new Program(arrayFunction);
+    if(isIdent) {
+    	id = lexer.token.getStringValue();
+    	Function func = new Function(id);
+  		lexer.nextToken();
 
-			if ( lexer.token != Symbol.EOF )
-				error.signal("EOF expected");
 
-			return program;
-
-		}
-
-		private Function func() {
-    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList
-
-    	Boolean isIdent = true;
-    	String id = "";
-    	Type type = null;
-
-    	//
-    	for (Symbol c : Symbol.values()) {
-            if (c.name().equals(lexer.token)) {
-                isIdent = false;
-            }
-        }
-
-    	if(isIdent) {
-    		id = lexer.token.getStringValue();
-        Function func = new Function(id);
+      if(lexer.token == Symbol.LEFTPAR) {
     		lexer.nextToken();
 
+    		func.setParamList(paramList());
 
-        if(lexer.token == Symbol.LEFTPAR) {
+    		if(lexer.token == Symbol.RIGHTPAR) {
     			lexer.nextToken();
-
-    			func.setParamList(paramList());
-
-    			if(lexer.token == Symbol.RIGHTPAR) {
-    				lexer.nextToken();
-    			} else {
+    		}else {
     				error.signal("right parenthesis missing");
-    			}
-    		} else {
-                error.signal("left parenthesis missing")
-            }
+    		}
     	} else {
-            error.signal("Identifier expected")
+          error.signal("left parenthesis missing")
+        }
+    	} else {
+        	error.signal("Identifier expected")
         }
 
     	if(lexer.token == Symbol.ARROW) {
     		lexer.nextToken();
-            type = type();
-            func.setReturnType(type);
+        type = type();
+        func.setReturnType(type);
     	}
 
         // Check and consume '{'
@@ -129,141 +128,142 @@ public class Compiler {
         } else {
             lexer.nextToken();
         }*/
-      func.setStatList(statList());
+    func.setStatList(statList());
 
-    	return func;
+		return func;
 
-    }
-
-		private paramList(){
-			// ParamList ::= ParamDec {”, ”ParamDec}
-			ParamList paramlist = null;
-
-			if(lexer.token == Symbol.IDENT){
-				paramlist = new ParamList();
-				paramDec(paramlist);
+  }
 
 
-				while (lexer.token == Symbol.COMMA) {
-					lexer.nextToken();
-      		paramDec(paramlist);
-      	}
-			}else{
-				error.signal("identifier expected");
+  private paramList(){
+		// ParamList ::= ParamDec {”, ”ParamDec}
+		ParamList paramlist = null;
 
-			}
+		if(lexer.token == Symbol.IDENT){
+			paramlist = new ParamList();
+			paramDec(paramlist);
 
-			return paramlist;
 
+			while (lexer.token == Symbol.COMMA) {
+				lexer.nextToken();
+      	paramDec(paramlist);
+      }
+		}else{
+			error.signal("identifier expected");
 		}
 
-		private Type type() {
-			 Type result;
+	return paramlist;
 
-			 switch(lexer.token) {
-					 case Symbol.INTEGER :
-							 result = Type.integerType;
-							 break;
-					 case Symbol.BOOLEAN :
-							 result = Type.booleanType;
-							 break;
-					 case Symbol.STRING :
-							 result = Type.stringType;
-							 break;
-					 default:
-							 error.signal("Type expected");
-							 result = Type.integerType;
-			 }
+	}
 
-			 lexer.nextToken();
-			 return result;
-	 }
+	private Type type() {
+		Type result;
+
+		switch(lexer.token) {
+			case Symbol.INTEGER :
+				result = Type.integerType;
+				break;
+			case Symbol.BOOLEAN :
+				result = Type.booleanType;
+				break;
+			case Symbol.STRING :
+				result = Type.stringType;
+				break;
+			default:
+				 error.signal("Type expected");
+				 result = Type.integerType;
+		}
+
+		lexer.nextToken();
+		return result;
+	}
 
 
 
-	 private StatementList statList() {
+	private StatementList statList() {
          // StatList ::= "{" {Stat} "}"
 
-         Symbol tkn;
-         ArrayList<Statement> v = new ArrayList<Statement>();
+    Symbol tkn;
+    ArrayList<Statement> v = new ArrayList<Statement>();
 
-         if (lexer.token != Symbol.OPENBRACE) {
-             error.signal("{ expected")
-         } else {
-             lexer.nextToken();
-         }
+    if (lexer.token != Symbol.OPENBRACE) {
+    	error.signal("{ expected")
+    }else{
+    	lexer.nextToken();
+    }
 
-         while ((tkn = lexer.token) != Symbol.CLOSEBRACE && tkn != Symbol.EOF) {
-             v.add(stat());
-         }
+    while ((tkn = lexer.token) != Symbol.CLOSEBRACE && tkn != Symbol.EOF) {
+    	v.add(stat());
+    }
 
-         if (tkn != Symbol.CLOSEBRACE) {
-             error.signal("} expected");
-         } else {
-             lexer.nextToken();
-         }
+    if (tkn != Symbol.CLOSEBRACE) {
+    	error.signal("} expected");
+    } else {
+    	lexer.nextToken();
+    }
 
-         return new StatementList(v);
-     }
+    return new StatementList(v);
+  }
 
 
 	private Statement stat() {
-        // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
+  // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
 
-        switch (lexer.token) {
-            case Symbol.IDENT :    // Ta errado, precisa revisar a regra da gramatica
-                return assignExprStat();
-                break;
-						case Symbol.TRUE:
-		              return assignExprStat();
-		              break;
-		        case Symbol.FALSE:
-		              return assignExprStat();
-                break;
-		        case Symbol.LITERALINT:
-		              return assignExprStat();
-		              break;
-		        case Symbol.LITERALSTRING:
-		              return assignExprStat();
-		              break;
-						case Symbol.PLUS:
-								return assignExpStat();
-								break;
-						case Symbol.MINUS:
-								return assignExpStat();
-								break;
-            case Symbol.RETURN :
-                return returnStat();
-                break;
-            case Symbol.VAR :
-                return varDecStat();
-                break;
-            case Symbol.IF :
-                return IfStat();
-                break;
-            case Symbol.WHILE:
-                return whileStat();
-                break;
-            default :
-                // will never be executed
-                error.signal("Statement expected");
-        }
-        return null;
+		switch (lexer.token) {
+    	case Symbol.IDENT :    // Ta errado, precisa revisar a regra da gramatica
+      	return assignExprStat();
+      	break;
+			case Symbol.TRUE:
+		    return assignExprStat();
+		    break;
+		  case Symbol.FALSE:
+		    return assignExprStat();
+        break;
+		 	case Symbol.LITERALINT:
+		    return assignExprStat();
+		    break;
+		 	case Symbol.LITERALSTRING:
+		    return assignExprStat();
+		    break;
+      case Symbol.PLUS:
+			  return assignExpStat();
+				break;
+			case Symbol.MINUS:
+			  return assignExpStat();
+				break;
+      case Symbol.RETURN :
+        return returnStat();
+        break;
+      case Symbol.VAR :
+        return varDecStat();
+        break;
+      case Symbol.IF :
+        return IfStat();
+        break;
+      case Symbol.WHILE:
+        return whileStat();
+        break;
+      default :
+        // will never be executed
+        error.signal("Statement expected");
     }
+        return null;
+  }
 
-	private AssignExprStatement assignExprStat() {
+
+  private AssignExprStatement assignExprStat() {
 		// AssignExprStat ::= Expr [ "=" Expr] ";"
 
-		Expr left = expr();
+    Expr left = expr();
 		Expr right = null;
 
 		if (lexer.token == Symbol.ATRIB) {
-				lexer.nextToken()
-				right = expr();
+    	lexer.nextToken()
+			right = expr();
 		}
 
-		if (lexer.token != Symbol.SEMICOLON) {
-				error.signal("; expected");
+		if(lexer.token != Symbol.SEMICOLON) {
+			error.signal("; expected");
 		}
 
 
@@ -274,7 +274,7 @@ public class Compiler {
 		// # Implementar analise semantica
 
 		return new AssignExprStat(left, right);
-	}
+  }
 
 
 
