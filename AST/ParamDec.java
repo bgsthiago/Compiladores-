@@ -7,7 +7,7 @@ public class ParamDec {
 
 	//atributos:
 	private String id;
-	private String type;
+	private Type type;
 
 
 	//metodos:

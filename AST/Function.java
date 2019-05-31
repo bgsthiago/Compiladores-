@@ -3,6 +3,7 @@ package AST;
 import java.util.ArrayList;
 import java.io.*;
 
+
 public class Function {
 
 	//atributos:
@@ -15,7 +16,6 @@ public class Function {
 	//metodos:
 	public Function( String Id ) {
       this.id = Id;
-			this.type = new Type;
 			//this.statList = new ArrayList<Stat>;
 
   }
@@ -28,7 +28,7 @@ public class Function {
 		return this.id;
 	 }
 
-	public void getType(){
+	public Type getType(){
 		return this.type;
 	}
 
@@ -36,13 +36,17 @@ public class Function {
 		this.paramList = paramlist;
 	}
 
+public ParamList getParamList(){
+	return this.paramList;
+}
+
 	public void setStatList(StatementList statlist){
 		this.statList = statlist;
 	}
 
 
   public void genC() {
-      System.out.println( "" );
+      
   }
 
 

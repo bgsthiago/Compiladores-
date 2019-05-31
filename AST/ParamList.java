@@ -11,7 +11,7 @@ public class ParamList{
 
     //métodos:
     ParamList(){
-      arrayParamDec = new ArrayList<ParamDec>
+      this.arrayParamDec = new ArrayList<ParamDec>();
     }
 
     public void addElement(ParamDec param){
@@ -19,9 +19,16 @@ public class ParamList{
 
     }
 
+    public int size(){
+      return arrayParamDec.size();
+    }
+
     public ArrayList<ParamDec> getParamList(){
       return arrayParamDec;
     }
 
+    public ParamDec access( int i){
+      return this.arrayParamDec.get(i);
+    }
 
 }

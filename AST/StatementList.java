@@ -11,13 +11,4 @@ public class StatementList {
         this.v = v;
     }
 
-  /*
-    public void genC() {
-        if ( v != null ) {
-            for ( Statement s : v )
-                s.genC();
-        }
-    }*/
-
-
 }
