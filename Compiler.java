@@ -5,27 +5,27 @@ import java.lang.Character;
 import java.io.*;
 
 public class Compiler {
-	
-	private Hashtable<String, Variable> symbolTable; 
-	private Lexer lexer; 
+
+	private Hashtable<String, Variable> symbolTable;
+	private Lexer lexer;
 	private CompilerError error;
 
     // compile must receive an input with an character less than
     // p_input.lenght
-    
+
     public Program compile( char []input, PrintWriter outError ) {
-        
-        symbolTable = new Hashtable<String, Variable>(); 
-        
-        error = new CompilerError( outError ); 
-        lexer = new Lexer(input, error); 
+
+        symbolTable = new Hashtable<String, Variable>();
+
+        error = new CompilerError( outError );
+        lexer = new Lexer(input, error);
         error.setLexer(lexer);
-        lexer.nextToken(); 
+        lexer.nextToken();
         return program();
     }
 
     private Program program() {
-    	
+
         // Program ::= Func {Func}
     	ArrayList<Function> arrayFunction = new ArrayList<Function>();
 
@@ -37,17 +37,17 @@ public class Compiler {
         if ( lexer.token != Symbol.EOF )
         	error.signal("EOF expected");
 
-        Program program = new Program(arrayFunction); 
+        Program program = new Program(arrayFunction);
         return program; //ta errado
     }
-    
+
     private Function func() {
-    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList 
-    	
+    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList
+
     	Boolean isIdent = true;
     	String id = "";
     	Type type = null;
-    	
+
     	//
     	for (Symbol c : Symbol.values()) {
             if (c.name().equals(lexer.token)) {
@@ -60,7 +60,7 @@ public class Compiler {
             Function f = new Function(id);
     		lexer.nextToken();
 
-    		
+
             if(lexer.token == Symbol.LEFTPAR) {
     			lexer.nextToken();
     			f.setparamList(paramList());
@@ -80,7 +80,7 @@ public class Compiler {
     	if(lexer.token == Symbol.ARROW) {
     		lexer.nextToken();
             type = type();
-            f.setReturnType(type); 	
+            f.setReturnType(type);
     	}
 
         // Check and consume '{'
@@ -90,15 +90,15 @@ public class Compiler {
         } else {
             lexer.nextToken();
         }*/
-        f.setStatList(statList()); 
+        f.setStatList(statList());
 
     	return f;
-    	
+
     }
 
     private ParamList paramList() {
         // ParamList ::= ParamDec {”, ”ParamDec}
-        
+
         ParamList paramlist = null;
 
         if (lexer.token == Symbol.IDENT) {
@@ -113,7 +113,7 @@ public class Compiler {
             error.signal("identifier expected");
         }
 
-        return paramlist;   
+        return paramlist;
     }
 
     private void paramDec(ParamList paramList) {
@@ -161,7 +161,7 @@ public class Compiler {
 
     private StatementList statList() {
         // StatList ::= "{" {Stat} "}"
-        
+
         Symbol tkn;
         ArrayList<Statement> v = new ArrayList<Statement>();
 
@@ -237,7 +237,7 @@ public class Compiler {
             error.signal("; expected");
         }
 
-    
+
         // #Sera implementado na segunda fase (Analisador Semantico)
         // is the variable in the symbol table ? Variables are inserted in the
         // symbol table when they are declared. It the variable is not there, it has
@@ -247,15 +247,14 @@ public class Compiler {
         return new AssignExprStat(left, right);
     }
 
-
     private IfStatement IfStat() {
         // IfStat ::= "if" Expr StatList
 
         lexer.nextToken();
         Expr e = expr();
-        
+
         StatementList thenPart = statList();
-        
+
         StatementList elsePart = null;
         if (lexer.token == Symbol.ELSE) {
             lexer.nextToken();
@@ -278,7 +277,7 @@ public class Compiler {
             id = lexer.getStringValue();
             lexer.nextToken();
         }
-        
+
         if (lexer.token != Symbol.COLON) {
             error.signal(": expected");
         } else {
