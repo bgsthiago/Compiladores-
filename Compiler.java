@@ -1,39 +1,3 @@
-/*
-comp8
-
-Variables now can have any number of characters and numbers any number
-of digits. There are new keywords and new non-terminals. The operator
-set includes the comparison operators. There are a few statements.
-Anything after // till the end of the line is a comment.
-Note that VarDecList was modified.
-
-The input is now taken from a file.
-
-Method error now prints the line in which the error occurred.
-
-Grammar:
-
-Program ::= [ "var" VarDecList ";" ] CompositeStatement
-CompositeStatement ::= "begin" StatementList "end"
-StatementList ::= | Statement ";" StatementList
-Statement ::= AssignmentStatement | IfStatement | ReadStatement |
-WriteStatement
-AssignmentStatement ::= Variable "=" Expr
-IfStatement ::= "if" Expr "then" StatementList [ "else" StatementList ] "endif"
-ReadStatement ::= "read" "(" Variable ")"
-WriteStatement ::= "write" "(" Expr ")"
-Variable ::= Letter { Letter }
-VarDecList ::= Variable | Variable "," VarDecList
-Expr::= ’(’ oper Expr Expr ’)’ | Number | Variable
-Oper ::= ’+’ | ’-’ | ’*’ | ’/’ | ’<’ | ’<=’ | ’>’ | ’>=’| ’==’ | ’<>’
-Number ::= Digit { Digit }
-Digit ::= ’0’| ’1’ | ... | ’9’
-Letter ::= ’A’ | ’B’| ... | ’Z’| ’a’| ’b’ | ... | ’z’/* 
-
-Anything between [] is optional. Anything between { e } can be
-repeated zero or more times.
-*/
-
 import AST.*;
 import java.util.*;
 import Lexer.*;
@@ -555,21 +519,3 @@ public class Compiler {
     }
     
 }
-
-
-        
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
