@@ -1,5 +1,3 @@
-
-
 package AST;
 
 import java.io.*;
@@ -11,7 +9,12 @@ public class Variable{
     private String id;
     private Type type;
 
-    Variable(String id){
+    public Variable(String id, Type type) {
+        this.id = id;
+        this.type = type;
+    }
+
+    public Variable(String id){
         this.id = id;
     }
 
@@ -28,7 +31,7 @@ public class Variable{
     }
 
     //genc
-    public genC(){
+    public void genC(){
         System.out.print(this.type.getTypeName() + this.id);
     }
 }

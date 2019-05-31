@@ -11,7 +11,7 @@ public class Program{
 		private ArrayList<Function> arrayFunction;
 
 		//construtor:
-		Program( 	ArrayList<Function> arrayFunction ){
+		public Program(ArrayList<Function> arrayFunction ){
 			this.arrayFunction = arrayFunction;
 		}
 

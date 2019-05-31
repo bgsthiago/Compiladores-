@@ -1,6 +1,6 @@
 package AST;
 
-import Java.io.*;
+import java.io.*;
 
 public class ReturnStatement extends Statement{
 

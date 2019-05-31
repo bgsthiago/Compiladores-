@@ -7,28 +7,28 @@ import java.io.*;
 public class ParamList{
 
     //atributos:
-    private ArrayList<ParamDec> arrayParamDec;
+    private ArrayList<Parameter> arrayParameter;
 
     //métodos:
-    ParamList(){
-      this.arrayParamDec = new ArrayList<ParamDec>();
+    public ParamList(){
+      this.arrayParameter = new ArrayList<Parameter>();
     }
 
-    public void addElement(ParamDec param){
-      arrayParamDec.add(param);
+    public void addElement(Parameter param){
+      arrayParameter.add(param);
 
     }
 
     public int size(){
-      return arrayParamDec.size();
+      return arrayParameter.size();
     }
 
-    public ArrayList<ParamDec> getParamList(){
-      return arrayParamDec;
+    public ArrayList<Parameter> getParamList(){
+      return arrayParameter;
     }
 
-    public ParamDec access( int i){
-      return this.arrayParamDec.get(i);
+    public Parameter access( int i){
+      return this.arrayParameter.get(i);
     }
 
 }

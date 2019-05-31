@@ -24,7 +24,7 @@ public class Function {
 		this.type  = x;
 	}
 
-  public String getId() {
+  	public String getId() {
 		return this.id;
 	 }
 
@@ -36,18 +36,17 @@ public class Function {
 		this.paramList = paramlist;
 	}
 
-public ParamList getParamList(){
-	return this.paramList;
-}
+	public ParamList getParamList(){
+		return this.paramList;
+	}
 
 	public void setStatList(StatementList statlist){
 		this.statList = statlist;
 	}
 
-
-  public void genC() {
-      
-  }
+	public void genC() {
+		
+	}
 
 
 }

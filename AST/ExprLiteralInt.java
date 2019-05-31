@@ -15,7 +15,7 @@ public class ExprLiteralInt extends Expr {
     return this.value;
   }
 
-  public genC(){
+  public void genC(){
     System.out.print(getIntValue());
   }
 

@@ -47,6 +47,7 @@ public class Compiler {
     	Boolean isIdent = true;
     	String id = "";
     	Type type = null;
+        Function f = null;
 
     	//
     	for (Symbol c : Symbol.values()) {
@@ -57,13 +58,13 @@ public class Compiler {
 
     	if(isIdent) {
     		id = lexer.getStringValue();
-            Function f = new Function(id);
+            f = new Function(id);
     		lexer.nextToken();
 
 
             if(lexer.token == Symbol.LEFTPAR) {
     			lexer.nextToken();
-    			f.setparamList(paramList());
+    			f.setParamList(paramList());
 
     			if(lexer.token == Symbol.RIGHTPAR) {
     				lexer.nextToken();
@@ -142,17 +143,17 @@ public class Compiler {
 
         switch(lexer.token) {
             case INTEGER :
-                result = Type.IntegerType;
+                result = Type.integerType;
                 break;
             case BOOLEAN :
-                result = Type.BooleanType;
+                result = Type.booleanType;
                 break;
             case STRING :
-                result = Type.CharType;
+                result = Type.stringType;
                 break;
             default:
                 error.signal("Type expected");
-                result = Type.IntegerType;
+                result = Type.integerType;
         }
 
         lexer.nextToken();
@@ -188,33 +189,24 @@ public class Compiler {
         // Stat ::= AssignExprStat| ReturnStat | VarDecStat | IfStat | WhileStat
 
         switch (lexer.token) {
-            case DENT :
+            case IDENT :
                 return assignExprStat();
-                break;
             case TRUE:
                 return assignExprStat();
-                break;
             case FALSE:
                 return assignExprStat();
-                break;
             case LITERALINT:
                 return assignExprStat();
-                break;
             case LITERALSTRING:
                 return assignExprStat();
-                break;
             case RETURN :
                 return returnStat();
-                break;
             case VAR :
                 return varDecStat();
-                break;
             case IF :
                 return IfStat();
-                break;
             case WHILE:
                 return whileStat();
-                break;
             default :
                 // will never be executed
                 error.signal("Statement expected");
@@ -244,7 +236,7 @@ public class Compiler {
         // not been declared.
         // # Implementar analise semantica
 
-        return new AssignExprStat(left, right);
+        return new AssignExprStatement(left, right);
     }
 
     private IfStatement IfStat() {
@@ -266,9 +258,9 @@ public class Compiler {
 
     private VarDecStat varDecStat() {
         // VarDecStat ::= "var" Id ":" Type ";"
-        Variable v = new Variable();
-        String id;
-        Type type;
+        Variable v = null;
+        String id = null;
+        Type type = null;
 
         lexer.nextToken();
         if (lexer.token != Symbol.IDENT) {
@@ -284,7 +276,9 @@ public class Compiler {
             lexer.nextToken();
         }
 
+        v = new Variable(id);
         type = type();
+        v.setType(type);
 
         if (lexer.token != Symbol.SEMICOLON) {
             error.signal("; expected");
@@ -299,7 +293,7 @@ public class Compiler {
         lexer.nextToken();
 
         Expr e = expr();
-        Statement stmt = statement();
+        Statement stmt = stat();
 
         return new WhileStatement(e, stmt);
     }
@@ -412,16 +406,12 @@ public class Compiler {
         switch (lexer.token) {
             case LITERALINT:
                 return exprLiteralInt();
-                break;
             case LITERALSTRING:
                 return exprLiteralString();
-                break;
             case TRUE:
                 return exprLiteralBoolean();
-                break;
             case FALSE:
                 return exprLiteralBoolean();
-                break;
             case IDENT: // Sera uma variavel simples ou uma chamada de funcao
                 lexer.nextToken();
                 
@@ -430,11 +420,9 @@ public class Compiler {
                 } else {
                     return exprId();
                 }
-
-                break;
             default:
                 error.signal("Statement expected");
-
+                return null;
         }
     }
     
@@ -465,13 +453,13 @@ public class Compiler {
             error.signal("Boolean expected");
         }
 
-        boolean value = lexer.getBooleanValue();
+        boolean value = false; // #IMPLEMENTAR LEXER
         lexer.nextToken();
 
         return new ExprLiteralBoolean(value);
     }
 
-    private FunctionCall funcCall() {
+    private FuncCall funcCall() {
         // FuncCall ::= Id "(" [ Expr {”, ”Expr} ] ")"
         ArrayList<Expr> exprList = new ArrayList<Expr>();
         Expr e = null;
@@ -506,7 +494,7 @@ public class Compiler {
 
         }
 
-        return new FunctionCall(name, exprList);
+        return new FuncCall(name, exprList);
     }
 
     private ExprIdentifier exprId() {

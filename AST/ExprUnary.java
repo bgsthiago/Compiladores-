@@ -14,8 +14,8 @@ public class ExprUnary extends Expr {
     this.e = e;
   }
 
-  public gencC(){
-    System.out.print(this.op + e.genC());
+  public void genC(){
+    System.out.print(this.op);
+    e.genC();
   }
-
 }

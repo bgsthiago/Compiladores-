@@ -1,7 +1,7 @@
 package AST;
 
 import Lexer.*;
-import Java.io.*;
+import java.io.*;
 
 public class ExprIdentifier extends Expr {
 
@@ -9,14 +9,13 @@ public class ExprIdentifier extends Expr {
   private String name;
 
   //metodos:
-  public FuncCall(String nome){
+  public ExprIdentifier(String nome){
     this.name = nome;
   }
-
 
   public String getName(){
     return this.name;
   }
-
-
+  
+  public void genC(){}
 }

@@ -1,22 +1,20 @@
-
-
 package AST;
 
 import java.io.*;
 import Lexer.*;
 
-public class Variable{
+public class VarDecStat extends Statement{
 
     //atributos:
-    private VarDecStat varDecStat;
+    private Variable v;
 
     //metodos:
-    VarDecStat(Variable v){
-        this.varDecStat = v;
+    public VarDecStat(Variable v){
+        this.v = v;
     }
 
     //genc
-    public genC(){
+    public void genC(){
         this.v.genC();
     }
 }

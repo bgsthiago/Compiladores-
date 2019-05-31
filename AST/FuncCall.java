@@ -1,7 +1,8 @@
 package AST;
 
 import Lexer.*;
-import Java.io.*;
+import java.io.*;
+import java.util.*;
 
 public class FuncCall extends Expr {
 
@@ -11,7 +12,7 @@ public class FuncCall extends Expr {
 
   //metodos:
   public FuncCall(String nome, ArrayList<Expr> lista){
-    this.ArrayList<Expr> exprList = lista;
+    this.exprList = lista;
     this.name = nome;
   }
 
@@ -22,6 +23,8 @@ public class FuncCall extends Expr {
   public String getName(){
     return this.name;
   }
+
+  public void genC() {}
 
 
 }
