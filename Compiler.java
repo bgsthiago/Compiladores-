@@ -1,18 +1,13 @@
 /*
 comp8
-
 Variables now can have any number of characters and numbers any number
 of digits. There are new keywords and new non-terminals. The operator
 set includes the comparison operators. There are a few statements.
 Anything after // till the end of the line is a comment.
 Note that VarDecList was modified.
-
 The input is now taken from a file.
-
 Method error now prints the line in which the error occurred.
-
 Grammar:
-
 Program ::= [ "var" VarDecList ";" ] CompositeStatement
 CompositeStatement ::= "begin" StatementList "end"
 StatementList ::= | Statement ";" StatementList
@@ -28,8 +23,7 @@ Expr::= ’(’ oper Expr Expr ’)’ | Number | Variable
 Oper ::= ’+’ | ’-’ | ’*’ | ’/’ | ’<’ | ’<=’ | ’>’ | ’>=’| ’==’ | ’<>’
 Number ::= Digit { Digit }
 Digit ::= ’0’| ’1’ | ... | ’9’
-Letter ::= ’A’ | ’B’| ... | ’Z’| ’a’| ’b’ | ... | ’z’/* 
-
+Letter ::= ’A’ | ’B’| ... | ’Z’| ’a’| ’b’ | ... | ’z’/*
 Anything between [] is optional. Anything between { e } can be
 repeated zero or more times.
 */
@@ -41,27 +35,27 @@ import java.lang.Character;
 import java.io.*;
 
 public class Compiler {
-	
-	private Hashtable<String, Variable> symbolTable; 
-	private Lexer lexer; 
+
+	private Hashtable<String, Variable> symbolTable;
+	private Lexer lexer;
 	private CompilerError error;
 
     // compile must receive an input with an character less than
     // p_input.lenght
-    
+
     public Program compile( char []input, PrintWriter outError ) {
-        
-        symbolTable = new Hashtable<String, Variable>(); 
-        
-        error = new CompilerError( outError ); 
-        lexer = new Lexer(input, error); 
+
+        symbolTable = new Hashtable<String, Variable>();
+
+        error = new CompilerError( outError );
+        lexer = new Lexer(input, error);
         error.setLexer(lexer);
-        lexer.nextToken(); 
+        lexer.nextToken();
         return program();
     }
 
     private Program program() {
-    	
+
         // Program ::= Func {Func}
     	ArrayList<Function> arrayFunction = new ArrayList<Function>();
 
@@ -73,17 +67,17 @@ public class Compiler {
         if ( lexer.token != Symbol.EOF )
         	error.signal("EOF expected");
 
-        Program program = new Program(arrayFunction); 
+        Program program = new Program(arrayFunction);
         return program; //ta errado
     }
-    
+
     private Function func() {
-    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList 
-    	
+    	//Func ::= "function" Id [ "(" ParamList ")" ] ["->" Type ] StatList
+
     	Boolean isIdent = true;
     	String id = "";
     	Type type = null;
-    	
+
     	//
     	for (Symbol c : Symbol.values()) {
             if (c.name().equals(lexer.token)) {
@@ -96,7 +90,7 @@ public class Compiler {
             Function f = new Function(id);
     		lexer.nextToken();
 
-    		
+
             if(lexer.token == Symbol.LEFTPAR) {
     			lexer.nextToken();
     			f.setparamList(paramList());
@@ -116,7 +110,7 @@ public class Compiler {
     	if(lexer.token == Symbol.ARROW) {
     		lexer.nextToken();
             type = type();
-            f.setReturnType(type); 	
+            f.setReturnType(type);
     	}
 
         // Check and consume '{'
@@ -126,15 +120,15 @@ public class Compiler {
         } else {
             lexer.nextToken();
         }*/
-        f.setStatList(statList()); 
+        f.setStatList(statList());
 
     	return f;
-    	
+
     }
 
     private ParamList paramList() {
         // ParamList ::= ParamDec {”, ”ParamDec}
-        
+
         ParamList paramlist = null;
 
         if (lexer.token == Symbol.IDENT) {
@@ -149,7 +143,7 @@ public class Compiler {
             error.signal("identifier expected");
         }
 
-        return paramlist;   
+        return paramlist;
     }
 
     private void paramDec(ParamList paramList) {
@@ -197,7 +191,7 @@ public class Compiler {
 
     private StatementList statList() {
         // StatList ::= "{" {Stat} "}"
-        
+
         Symbol tkn;
         ArrayList<Statement> v = new ArrayList<Statement>();
 
@@ -273,7 +267,7 @@ public class Compiler {
             error.signal("; expected");
         }
 
-    
+
         // #Sera implementado na segunda fase (Analisador Semantico)
         // is the variable in the symbol table ? Variables are inserted in the
         // symbol table when they are declared. It the variable is not there, it has
@@ -283,15 +277,14 @@ public class Compiler {
         return new AssignExprStat(left, right);
     }
 
-
     private IfStatement IfStat() {
         // IfStat ::= "if" Expr StatList
 
         lexer.nextToken();
         Expr e = expr();
-        
+
         StatementList thenPart = statList();
-        
+
         StatementList elsePart = null;
         if (lexer.token == Symbol.ELSE) {
             lexer.nextToken();
@@ -314,7 +307,7 @@ public class Compiler {
             id = lexer.getStringValue();
             lexer.nextToken();
         }
-        
+
         if (lexer.token != Symbol.COLON) {
             error.signal(": expected");
         } else {
@@ -556,20 +549,72 @@ public class Compiler {
     
 }
 
+    private ExprLiteralString exprLiteralString() {
+        if (lexer.token != Symbol.LITERALSTRING) {
+            error.signal("String expected");
+        }
 
-        
-    
+        String value = lexer.getStringValue();
+        lexer.nextToken();
 
+        return new ExprLiteralString(value);
+    }
 
+    private ExprLiteralBoolean exprLiteralBoolean() {
+        if (lexer.token != Symbol.FALSE && lexer.token != Symbol.TRUE) {
+            error.signal("Boolean expected");
+        }
 
+        boolean value = lexer.getBooleanValue();
+        lexer.nextToken();
 
+        return new ExprLiteralBoolean(value);
+    }
 
+    private FunctionCall funcCall() {
+        // FuncCall ::= Id "(" [ Expr {”, ”Expr} ] ")"
+        ArrayList<Expr> exprList = new ArrayList<Expr>();
+        Expr e = null;
+        String name = lexer.getStringValue();
 
+        lexer.nextToken();
 
+        if (lexer.token != Symbol.LEFTPAR) {
+            error.signal("( expected");
+        }
+        lexer.nextToken();
 
+        if (lexer.token != Symbol.RIGHTPAR) {
+            // # Implementar analise semantica
 
+            // processa todas expressoes
+            while (true) {
+                e = expr();
+                exprList.add(e);
 
+                if (lexer.token == Symbol.COMMA) {
+                    lexer.nextToken();
+                } else {
+                    break;
+                }
+            }
 
+            if (lexer.token != Symbol.RIGHTPAR) {
+                error.signal(") expected");
+            }
+            lexer.nextToken();
 
+        }
 
+        return new FunctionCall(name, exprList);
+    }
 
+    private ExprIdentifier exprId() {
+        String name = lexer.getStringValue();
+
+        lexer.nextToken();
+
+        return new ExprIdentifier(name);
+    }
+
+}
