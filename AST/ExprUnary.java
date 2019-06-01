@@ -1,3 +1,8 @@
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
 import Lexer.*;
@@ -15,7 +20,10 @@ public class ExprUnary extends Expr {
   }
 
   public void genC(){
-    System.out.print(this.op);
-    e.genC();
+    if (this.op != null) {
+      System.out.print(this.op.toString());
+      e.genC();
+    }
   }
+
 }

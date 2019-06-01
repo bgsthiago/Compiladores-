@@ -1,3 +1,8 @@
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
 import java.util.ArrayList;
@@ -24,7 +29,7 @@ public class Function {
 		this.type  = x;
 	}
 
-  	public String getId() {
+  public String getId() {
 		return this.id;
 	 }
 
@@ -36,17 +41,20 @@ public class Function {
 		this.paramList = paramlist;
 	}
 
-	public ParamList getParamList(){
-		return this.paramList;
-	}
+public ParamList getParamList(){
+	return this.paramList;
+}
 
 	public void setStatList(StatementList statlist){
 		this.statList = statlist;
 	}
 
-	public void genC() {
-		
-	}
+
+  public void genC() {
+		  
+		this.statList.genC();
+	
+  }
 
 
 }

@@ -1,3 +1,8 @@
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
 import java.util.*;
@@ -7,28 +12,28 @@ import java.io.*;
 public class ParamList{
 
     //atributos:
-    private ArrayList<Parameter> arrayParameter;
+    private ArrayList<Parameter> arrayParam;
 
     //métodos:
     public ParamList(){
-      this.arrayParameter = new ArrayList<Parameter>();
+      this.arrayParam = new ArrayList<Parameter>();
     }
 
     public void addElement(Parameter param){
-      arrayParameter.add(param);
+      arrayParam.add(param);
 
     }
 
     public int size(){
-      return arrayParameter.size();
+      return arrayParam.size();
     }
 
     public ArrayList<Parameter> getParamList(){
-      return arrayParameter;
+      return arrayParam;
     }
 
     public Parameter access( int i){
-      return this.arrayParameter.get(i);
+      return this.arrayParam.get(i);
     }
 
 }
