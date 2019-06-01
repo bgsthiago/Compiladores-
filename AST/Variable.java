@@ -1,15 +1,40 @@
+
+
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
-public class Variable {
-    public Variable( String name ) {
-        this.name = name;
+import Lexer.*;
+
+public class Variable{
+
+    //atributos:
+    private String id;
+    private Type type;
+
+    public Variable(String id){
+        this.id = id;
     }
 
-    public String getName() { return name; }
-
-    public void genC() {
-        System.out.println( "int " + name + ";" );
+    public Variable(String id, Type type) {
+        this.id = id;
+        this.type = type;
     }
-    
-    private String name;
+
+    public String getId(){ 
+        return this.id;
+    }
+
+    public void setType(Type type){
+        this.type = type;
+    }
+
+    public Type getType(){
+        return this.type;
+    }
+
+
 }
