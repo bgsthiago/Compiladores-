@@ -1,6 +1,12 @@
+
+
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
-import java.io.*;
 import Lexer.*;
 
 public class Variable{
@@ -9,13 +15,13 @@ public class Variable{
     private String id;
     private Type type;
 
+    public Variable(String id){
+        this.id = id;
+    }
+
     public Variable(String id, Type type) {
         this.id = id;
         this.type = type;
-    }
-
-    public Variable(String id){
-        this.id = id;
     }
 
     public String getId(){ 
@@ -30,8 +36,5 @@ public class Variable{
         return this.type;
     }
 
-    //genc
-    public void genC(){
-        System.out.print(this.type.getTypeName() + this.id);
-    }
+
 }

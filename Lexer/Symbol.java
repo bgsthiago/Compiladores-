@@ -1,3 +1,8 @@
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package Lexer;
 
 public enum Symbol {
@@ -38,8 +43,6 @@ public enum Symbol {
     AND("and"),
     LEFTBRACK("["),
     RIGHTBRACK("]"),
-    WRITELN("writeln"),
-    WRITE("write"),
     RETURN("return");
 
     Symbol(String name) {

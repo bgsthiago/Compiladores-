@@ -1,3 +1,8 @@
+/*Bruno Veiga - 743514
+Lucas Costa - 743563
+Luiz Felipe Guimarães - 743570
+Thiago Borges - 613770*/
+
 package AST;
 
 import java.util.*;
@@ -30,16 +35,16 @@ public class Program{
 
 				p = f.getParamList();
 
-				int lenght = p.size();
+				int length = p.size();
 
-				for(int i =0; i <lenght; i++ ){
+				for(int i =0; i <length; i++ ){
 
-					if( lenght != 0){
+					if( length != 0){
 						
 						System.out.print(p.access(i).getType().getTypeName() + " "+ p.access(i).getId());
 
 						if( i != p.size() - 1){
-							System.out.print(",");
+							System.out.print(", ");
 						}
 					}
 
